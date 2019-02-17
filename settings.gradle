@@ -1,0 +1,6 @@
+
+include ':app'
+
+//file()
+
+println("settings.gradle project = ")

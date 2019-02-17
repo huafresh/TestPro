@@ -1,0 +1,71 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 26
+    defaultConfig {
+        applicationId "com.hua.testpro2.appid"
+        minSdkVersion 19
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled false
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("../thinkive.keystore")
+            storePassword "thinkiveQWERT1003"
+            keyAlias "thinkive"
+            keyPassword "thinkiveQWERT1003"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            debuggable true
+            minifyEnabled false
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+configurations {
+    testConfig {
+        visible = true
+    }
+}
+
+dependencies {
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support:design:26.1.0'
+    implementation('com.android.support.constraint:constraint-layout:1.1.3', {
+        exclude group: 'com.android.support'
+    })
+    testImplementation 'junit:junit:4.12'
+
+    //compile project(':secondmodule')
+
+//    implementation(name: 'tkRetrofit-1.1', ext: 'aar') {
+//        transitive = true
+//    }
+
+//    //optional, help to generate the final application
+//    provided 'com.tencent.tinker:tinker-android-anno:1.9.1'
+//    annotationProcessor 'com.tencent.tinker:tinker-android-anno:1.9.1'
+//    //tinker's main Android lib
+//    compile 'com.tencent.tinker:tinker-android-lib:1.9.1'
+//    implementation files('libs/gradle-wrapper.jar')
+}
