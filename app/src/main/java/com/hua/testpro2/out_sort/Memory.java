@@ -29,6 +29,10 @@ public class Memory {
         return false;
     }
 
+    public int[] data() {
+        return data;
+    }
+
     public int get(int index) {
         if (index < 0 || index > MAX_SIZE - 1) {
             throw new ArrayIndexOutOfBoundsException("index too large");
@@ -44,7 +48,7 @@ public class Memory {
         return offset != -1 ? offset : 0;
     }
 
-    public void sort() {
+    public static void sort(int[] data) {
         //简单起见，就采用冒泡排序
         int len = data.length;
         for (int i = 0; i < len; i++) {
@@ -58,5 +62,7 @@ public class Memory {
         }
     }
 
-
+    public void sort2() {
+        Util.sort(data, 0, offset);
+    }
 }

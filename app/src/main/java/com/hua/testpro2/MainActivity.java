@@ -7,16 +7,17 @@ import android.view.View;
 
 
 import com.hua.testpro.manifest.R;
-import com.hua.testpro2.out_sort.RandomFileCreator;
+import com.hua.testpro2.out_sort.OutSort;
+import com.hua.testpro2.out_sort.Util;
 
-import java.io.OutputStream;
+import java.io.File;
 import java.util.HashMap;
-import java.util.Stack;
 
 public class MainActivity extends AppCompatActivity {
 
     private HashMap<String, String> hashMap;
     private static int i = 0;
+    private File randomFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,13 +32,19 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.put).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //hashMap.put("key" + i++, "value" + i);
-                RandomFileCreator.createRandomFile(MainActivity.this);
+                randomFile = Util.createRandomFile(MainActivity.this);
+            }
+        });
+
+        findViewById(R.id.sort).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                OutSort.outSortWithMerge(MainActivity.this,
+                        new File(getExternalCacheDir(), "random.txt"));
             }
         });
 
     }
-
 
 
 }

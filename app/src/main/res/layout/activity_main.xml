@@ -12,6 +12,12 @@
         android:id="@+id/put"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="put"/>
+        android:text="create"/>
+
+    <Button
+        android:id="@+id/sort"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="sort"/>
 
 </LinearLayout>

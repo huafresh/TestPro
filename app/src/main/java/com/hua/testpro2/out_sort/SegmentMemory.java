@@ -1,6 +1,10 @@
 package com.hua.testpro2.out_sort;
 
-import java.util.List;
+import android.content.Context;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  * 因为读取到内存的每段的数据并不是存储在不同的数组的，而是都放在一个数组里。
@@ -9,6 +13,7 @@ import java.util.List;
  */
 
 public class SegmentMemory extends Memory {
+    private Context context;
     private Segment[] segments;
 
     //输出缓冲区起始位置等信息
@@ -16,11 +21,12 @@ public class SegmentMemory extends Memory {
     private int outputLen;
     private int outputOffset;
 
-    public SegmentMemory(int segmentCount) {
+    public SegmentMemory(Context context, int segmentCount) {
+        this.context = context;
         int segmentPerSize = MAX_SIZE / (segmentCount + 1);
         this.segments = new Segment[segmentCount];
         for (int i = 0; i < segmentCount; i++) {
-            segments[i] = new Segment(i, i * segmentPerSize, segmentPerSize);
+            segments[i] = new Segment(i * segmentPerSize, segmentPerSize);
         }
         this.outputStart = segmentPerSize * segmentCount;
         this.outputLen = MAX_SIZE - outputStart;
@@ -29,12 +35,11 @@ public class SegmentMemory extends Memory {
 
     public boolean add(int index, int value) {
         Segment segment = segments[index];
-        if (segment.hasSpace()) {
-            set(segment.nextIndex(), value);
-            return true;
-        }
+        return segment.add(this, value);
+    }
 
-        return false;
+    public int segmentCount() {
+        return segments.length;
     }
 
     public void invalidSegment(int index) {
@@ -42,47 +47,113 @@ public class SegmentMemory extends Memory {
         segment.invalid();
     }
 
-    public int segmentCount(){
-        return segments.length;
+    public int popFirst(int index) {
+        Segment segment = segments[index];
+        return segment.popFirst(this);
+    }
+
+    public void bindFile(int index, File file) {
+        Segment segment = segments[index];
+        segment.bindFile(file);
+    }
+
+    public File file(int index) {
+        Segment segment = segments[index];
+        return segment.file;
+    }
+
+    public int getValidSegment() {
+        for (int i = 0; i < segments.length; i++) {
+            Segment segment = segments[i];
+            if (!segment.finish) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public void markFinish(int index) {
+        Segment segment = segments[index];
+        segment.markFinish();
+    }
+
+    public void writeOutputCache(int value) {
+        if (outputOffset + 1 >= outputLen) {
+            //缓冲区满，写入文件
+            writeToResultFile(context, this, outputStart, outputLen);
+            outputOffset = 0;
+        }
+        set(outputStart + outputOffset + 1, value);
+    }
+
+    private static void writeToResultFile(Context context, Memory memory, int offset, int size) {
+        File resultFile = new File(context.getExternalCacheDir(), "ordered.txt");
+        FileWriter writer = null;
+        try {
+            writer = new FileWriter(resultFile, true);
+            for (int i = 0; i < size; i++) {
+                writer.write(memory.get(offset + i));
+                writer.write('\n');
+            }
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            Util.closeQuietly(writer);
+        }
     }
 
     /**
      * 段信息
      */
     static class Segment {
-        private int segmentId;
         private int start;
         private int segmentSize;
-        //段内有效数据偏移
-        private int offset;
+        //段内有效数据偏移范围
+        private int offsetStart;
+        private int offsetEnd;
+        private File file;
+        private boolean finish = false;
 
-        //段内有效数据的偏移值
-        private int offset1;
-        private int offset2;
-
-        Segment(int segmentId, int start, int segmentSize) {
-            this.segmentId = segmentId;
+        Segment(int start, int segmentSize) {
             this.start = start;
             this.segmentSize = segmentSize;
-            this.offset = -1;
+            this.offsetStart = -1;
+            this.offsetEnd = -1;
         }
 
-        boolean valid() {
-            return offset > 0;
+        boolean add(Memory memory, int value) {
+            if (offsetEnd + 1 < segmentSize) {
+                memory.set(start + offsetEnd + 1, value);
+                if (offsetStart == -1) {
+                    offsetStart++;
+                }
+                offsetEnd++;
+                return true;
+            }
+            return false;
         }
 
-        void invalid(){
-            offset = -1;
+        void invalid() {
+            this.offsetStart = -1;
+            this.offsetEnd = -1;
         }
 
-        boolean hasSpace() {
-            return offset + 1 < segmentSize;
+        int popFirst(Memory memory) {
+            if (offsetStart != -1 && offsetStart <= offsetEnd) {
+                offsetStart++;
+                return memory.get(start + offsetStart);
+            }
+            return -1;
         }
 
-        int nextIndex() {
-            return start + offset + 1;
+        void bindFile(File file) {
+            this.file = file;
         }
 
+        void markFinish() {
+            finish = true;
+        }
     }
 
 }

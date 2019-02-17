@@ -53,6 +53,18 @@ public class LoserTree {
         return topValue;
     }
 
+    public void flushRemainValue(SegmentMemory sm){
+        int[] array = new int[ls.length];
+        for (int i = 0; i < ls.length; i++) {
+            Record record = ls[i];
+            array[i] = record.value;
+        }
+        Memory.sort(array);
+        for (int value : array) {
+            sm.writeOutputCache(value);
+        }
+    }
+
     private static int getVictorIndex(int[] b, int bLeft, int bRight,
                                       Record[] ls, int lsIndex) {
         int victorIndex, loserIndex;
@@ -64,7 +76,7 @@ public class LoserTree {
         }
 
         int leftVictorIndex = getVictorIndex(b, bLeft, (bLeft + bRight) / 2, ls, lsIndex + 1);
-        int rightVictorIndex = getVictorIndex(b, bLeft, (bLeft + bRight) / 2, ls, lsIndex + 2);
+        int rightVictorIndex = getVictorIndex(b, (bLeft + bRight) / 2, bRight, ls, lsIndex + 2);
 
         int leftVictor = b[leftVictorIndex];
         int rightVictor = b[rightVictorIndex];
