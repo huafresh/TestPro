@@ -1,5 +1,5 @@
 
-include ':app'
+include ':app', ':test_java', ':android_26'
 
 //file()
 
